@@ -83,7 +83,6 @@ export default function MisViajes() {
       alert("Error al guardar")
     } else {
       alert("Referencia guardada ✅")
-      // Limpiamos el input local para que prevalezca el dato real de la DB al refrescar
       setReferenciaInput(prev => {
         const nuevo = { ...prev }
         delete nuevo[reservaId]
@@ -127,7 +126,6 @@ export default function MisViajes() {
       <main className="min-h-screen bg-[#f3f3f3] py-6 md:py-12 px-4 md:px-6 text-black overflow-x-hidden">
         <div className="max-w-4xl mx-auto">
           
-          {/* HEADER RESALTADO POR ROL */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6 p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border-4 border-black bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
             <div className="w-full">
               <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-none">
@@ -242,8 +240,12 @@ export default function MisViajes() {
                             inputMode="numeric"
                             maxLength={4}
                             placeholder="####"
-                            value={referenciaInput[reserva.id] ?? reserva.referencia_pago ?? ''}
-                            onChange={(e) => setReferenciaInput({...referenciaInput, [reserva.id]: e.target.value})}
+                            // LÓGICA CORREGIDA:
+                            value={referenciaInput[reserva.id] !== undefined ? referenciaInput[reserva.id] : (reserva.referencia_pago || '')}
+                            onChange={(e) => {
+                              const v = e.target.value.replace(/\D/g, ''); // Solo números
+                              setReferenciaInput({...referenciaInput, [reserva.id]: v});
+                            }}
                             className="flex-1 border-4 border-black p-3 rounded-2xl font-black text-xl tracking-[0.5em] text-center focus:ring-0 outline-none bg-gray-50"
                           />
                           <button 

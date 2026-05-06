@@ -5,10 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import AuthGuard from '@/components/AuthProvider'
 
+// Actualizado para incluir Santa Ana
 const CITIES = [
   "Anaco", "Barcelona", "Cantaura", "Caracas", "Cumana", 
   "El Tigre", "Guanta", "Lechería", "Maturín", "Pariaguán", 
-  "Puerto La Cruz", "Puerto Ordaz", "San Tomé", "Soledad", "Valle de la Pascua"
+  "Puerto La Cruz", "Puerto Ordaz", "San Tomé", "Santa Ana", "Soledad", "Valle de la Pascua"
 ].sort()
 
 export default function PublicarViaje() {

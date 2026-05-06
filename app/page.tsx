@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation' // Para redireccionar si no hay sesi
 const CITIES = [
   "Anaco", "Barcelona", "Cantaura", "Caracas", "Cumana", 
   "El Tigre", "Guanta", "Lechería", "Maturín", "Pariaguán", 
-  "Puerto La Cruz", "Puerto Ordaz", "San Tomé", "Soledad", "Valle de la Pascua"
+  "Puerto La Cruz", "Puerto Ordaz", "San Tomé", "Santa Ana", "Soledad", "Valle de la Pascua"
 ].sort()
 
 export default function Home() {
@@ -245,13 +245,13 @@ export default function Home() {
                     <button 
                       onClick={() => handleWhatsApp(viaje)} 
                       disabled={viaje.cupos_disponibles === 0}
-                      className={`p-4 rounded-2xl border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all ${
+                      className={`p-2 rounded-2xl border-4 border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] transition-all flex items-center justify-center ${
                         viaje.cupos_disponibles === 0 
                         ? 'bg-gray-200 opacity-50 cursor-not-allowed shadow-none' 
-                        : 'bg-[#25D366] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
+                        : 'bg-white hover:shadow-none hover:translate-x-1 hover:translate-y-1'
                       }`}
                     >
-                      <span className="text-xl">💬</span>
+                      <img src="https://png.pngtree.com/png-vector/20221018/ourmid/pngtree-whatsapp-icon-png-image_6315990.png" className="w-8 h-8 object-contain" alt="WhatsApp" />
                     </button>
 
                     {/* Botón Solicitar Puesto (Principal) */}

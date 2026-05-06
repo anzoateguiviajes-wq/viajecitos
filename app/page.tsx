@@ -144,22 +144,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SECCIÓN DE SUGERENCIAS Y RECLAMOS (VISIBLE AL INICIO) */}
-      <div className="max-w-6xl mx-auto mt-10 px-6">
-        <div className="bg-blue-600 border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="text-center md:text-left">
-            <p className="font-black text-white uppercase text-sm italic italic leading-tight">¿Sugerencias, cambios o reclamos?</p>
-            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">Tu feedback nos ayuda a crecer</p>
-          </div>
-          <a 
-            href="mailto:anzoateguiviajes@gmail.com" 
-            className="w-full md:w-auto text-center bg-white text-black font-black px-6 py-3 rounded-xl border-2 border-black hover:bg-yellow-400 transition-all text-xs uppercase shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none"
-          >
-            anzoateguiviajes@gmail.com
-          </a>
-        </div>
-      </div>
-
       {/* GRID DE VIAJES */}
       <div className="max-w-[1400px] mx-auto py-12 px-6">
         {loading ? (
@@ -271,6 +255,22 @@ export default function Home() {
             <button onClick={()=>{setSearchOrigen(''); setSearchDestino('')}} className="mt-4 text-black font-black uppercase text-xs underline">Mostrar todos los viajes</button>
           </div>
         )}
+      </div>
+
+      {/* SECCIÓN DE SUGERENCIAS Y RECLAMOS (AL FINAL) */}
+      <div className="max-w-6xl mx-auto mt-4 mb-12 px-6">
+        <div className="bg-blue-600 border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
+            <p className="font-black text-white uppercase text-sm italic leading-tight">¿Sugerencias, cambios o reclamos?</p>
+            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest mt-1">Escríbenos directamente</p>
+          </div>
+          <a 
+            href="mailto:anzoateguiviajes@gmail.com" 
+            className="w-full md:w-auto text-center bg-white text-black font-black px-6 py-3 rounded-xl border-2 border-black hover:bg-yellow-400 transition-all text-xs uppercase shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none"
+          >
+            anzoateguiviajes@gmail.com
+          </a>
+        </div>
       </div>
     </main>
   )

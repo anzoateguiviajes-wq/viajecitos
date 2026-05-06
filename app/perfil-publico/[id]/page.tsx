@@ -18,6 +18,7 @@ export default function PerfilPublico() {
   
   const [perfil, setPerfil] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
     async function loadPerfil() {
@@ -37,6 +38,12 @@ export default function PerfilPublico() {
     }
     loadPerfil()
   }, [id, supabase, router])
+
+  const copiarAlPortapapeles = (texto: string) => {
+    navigator.clipboard.writeText(texto)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2000)
+  }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center font-black italic uppercase">Cargando Perfil...</div>
 
@@ -75,6 +82,31 @@ export default function PerfilPublico() {
               <span className="mt-2 bg-green-500 text-white px-4 py-1 rounded-full border-2 border-black font-black text-[10px] uppercase">✓ Chofer Verificado</span>
             )}
           </div>
+
+          {/* SECCIÓN PAGO MÓVIL (SOLO PARA CHOFERES) */}
+          {esChofer && perfil.pago_movil_banco && (
+            <div className="bg-blue-50 border-4 border-black p-6 rounded-3xl relative animate-in zoom-in-95 duration-300">
+              <span className="absolute -top-4 left-6 bg-blue-500 text-white px-3 py-1 text-[10px] font-black uppercase italic border-2 border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+                Pago Móvil
+              </span>
+              
+              <div className="mt-2 text-center">
+                <p className="text-2xl font-black tracking-tighter text-blue-600 break-all uppercase">
+                  {perfil.cedula} {perfil.pago_movil_banco} {perfil.telefono}
+                </p>
+                <p className="text-[8px] font-black uppercase text-gray-400 mt-1 italic">
+                  Cédula • Banco • Teléfono
+                </p>
+              </div>
+
+              <button 
+                onClick={() => copiarAlPortapapeles(`${perfil.cedula} ${perfil.pago_movil_banco} ${perfil.telefono}`)}
+                className={`w-full mt-4 py-3 rounded-xl border-2 border-black font-black uppercase text-[10px] transition-all flex items-center justify-center gap-2 ${copiado ? 'bg-green-400 shadow-none translate-x-1 translate-y-1' : 'bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1'}`}
+              >
+                {copiado ? '¡DATOS COPIADOS! ✓' : '📋 COPIAR DATOS'}
+              </button>
+            </div>
+          )}
 
           {/* SECCIÓN DINÁMICA: MAPA (PASAJERO) O VEHÍCULO (CHOFER) */}
           {!esChofer ? (
@@ -128,7 +160,7 @@ export default function PerfilPublico() {
 
           {/* BOTÓN CONTACTO (Común para ambos) */}
           <a 
-            href={`https://wa.me/${perfil.telefono?.replace(/\+/g, '')}`}
+            href={`https://wa.me/${perfil.telefono?.replace(/\+/g, '').replace(/\s/g, '')}`}
             className="block w-full bg-[#25D366] text-black text-center py-6 rounded-2xl font-black uppercase border-4 border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
           >
             Contactar por WhatsApp

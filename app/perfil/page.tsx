@@ -5,11 +5,38 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 
-// Cargamos el mapa de forma dinámica para evitar errores de SSR
 const MapaSeleccion = dynamic(() => import('@/components/MapaSeleccion'), { 
   ssr: false,
   loading: () => <div className="h-full w-full flex items-center justify-center font-black uppercase text-[10px]">Cargando Mapa...</div>
 })
+
+const BANCOS_VENEZUELA = [
+  { codigo: "0102", nombre: "BANCO DE VENEZUELA" },
+  { codigo: "0104", nombre: "BANCO VENEZOLANO DE CREDITO" },
+  { codigo: "0105", nombre: "BANCO MERCANTIL" },
+  { codigo: "0108", nombre: "BBVA PROVINCIAL" },
+  { codigo: "0114", nombre: "BANCARIBE" },
+  { codigo: "0115", nombre: "BANCO EXTERIOR" },
+  { codigo: "0128", nombre: "BANCO CARONI" },
+  { codigo: "0134", nombre: "BANESCO" },
+  { codigo: "0137", nombre: "BANCO SOFITASA" },
+  { codigo: "0138", nombre: "BANCO PLAZA" },
+  { codigo: "0146", nombre: "BANGENTE" },
+  { codigo: "0151", nombre: "BANCO FONDO COMUN" },
+  { codigo: "0156", nombre: "100% BANCO" },
+  { codigo: "0157", nombre: "DELSUR BANCO UNIVERSAL" },
+  { codigo: "0163", nombre: "BANCO DEL TESORO" },
+  { codigo: "0168", nombre: "BANCRECER" },
+  { codigo: "0169", nombre: "R4 BANCO MICROFINANCIERO C.A." },
+  { codigo: "0171", nombre: "BANCO ACTIVO" },
+  { codigo: "0172", nombre: "BANCAMIGA BANCO UNIVERSAL, C.A." },
+  { codigo: "0173", nombre: "BANCO INTERNACIONAL DE DESARROLLO" },
+  { codigo: "0174", nombre: "BANPLUS" },
+  { codigo: "0175", nombre: "BANCO DIGITAL DE LOS TRABAJADORES" },
+  { codigo: "0177", nombre: "BANFANB" },
+  { codigo: "0178", nombre: "N58 BANCO DIGITAL" },
+  { codigo: "0191", nombre: "BANCO NACIONAL DE CREDITO" },
+].sort((a, b) => a.nombre.localeCompare(b.nombre))
 
 export default function PerfilPage() {
   const supabase = createClient()
@@ -20,7 +47,6 @@ export default function PerfilPage() {
   const [updating, setUpdating] = useState(false)
   const [user, setUser] = useState<any>(null)
   
-  // --- ESTADOS ORIGINALES REINTEGRADOS ---
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
   const [cedula, setCedula] = useState('')
@@ -32,6 +58,9 @@ export default function PerfilPage() {
   const [logoCooperativaUrl, setLogoCooperativaUrl] = useState('')
   const [fotosAuto, setFotosAuto] = useState<string[]>([]) 
 
+  // SOLO EL ESTADO DEL BANCO (Cédula y Teléfono se usan de los de abajo)
+  const [pagoMovilBanco, setPagoMovilBanco] = useState('')
+
   const [servicios, setServicios] = useState({
     aire_acondicionado: false,
     puerta_a_puerta: false,
@@ -40,7 +69,6 @@ export default function PerfilPage() {
     mascotas: false
   })
 
-  // --- ESTADOS DE UBICACIÓN ---
   const [direccionReferencia, setDireccionReferencia] = useState('')
   const [coords, setCoords] = useState({ lat: -0.1807, lng: -78.4678 })
 
@@ -64,11 +92,11 @@ export default function PerfilPage() {
         setLogoCooperativaUrl(data.logo_cooperativa_url || '')
         setFotosAuto(data.fotos_auto || [])
         if (data.servicios) setServicios(data.servicios)
-        
         setDireccionReferencia(data.direccion_referencia || '')
-        if (data.latitud && data.longitud) {
-          setCoords({ lat: data.latitud, lng: data.longitud })
-        }
+        if (data.latitud && data.longitud) setCoords({ lat: data.latitud, lng: data.longitud })
+
+        // Cargar el banco guardado
+        setPagoMovilBanco(data.pago_movil_banco || '')
       }
       setLoading(false)
     }
@@ -97,6 +125,8 @@ export default function PerfilPage() {
           direccion_referencia: direccionReferencia,
           latitud: coords.lat,
           longitud: coords.lng,
+          // Guardamos el banco
+          pago_movil_banco: pagoMovilBanco,
           actualizado_en: new Date().toISOString(),
         })
 
@@ -147,7 +177,6 @@ export default function PerfilPage() {
       <div className="max-w-2xl mx-auto -mt-16 px-6">
         <form onSubmit={handleUpdate} className="bg-white p-8 rounded-[3rem] border-4 border-black shadow-[12px_12px_0_0_rgba(0,0,0,1)] space-y-10">
           
-          {/* SELECTOR DE ROL */}
           <div className="grid grid-cols-2 gap-4">
             <button type="button" onClick={() => setTipoUsuario('pasajero')} className={`py-4 rounded-2xl border-4 border-black font-black uppercase text-xs transition-all ${tipoUsuario === 'pasajero' ? 'bg-yellow-400 translate-x-1 translate-y-1 shadow-none' : 'bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]'}`}>Soy Pasajero</button>
             <button type="button" onClick={() => setTipoUsuario('chofer')} className={`py-4 rounded-2xl border-4 border-black font-black uppercase text-xs transition-all ${tipoUsuario === 'chofer' ? 'bg-yellow-400 translate-x-1 translate-y-1 shadow-none' : 'bg-white shadow-[4px_4px_0_0_rgba(0,0,0,1)]'}`}>Soy Chofer</button>
@@ -155,7 +184,6 @@ export default function PerfilPage() {
 
           {/* FOTOS DE PERFIL Y DOCUMENTOS */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {/* Avatar */}
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 border-4 border-black rounded-[2rem] overflow-hidden bg-gray-50 relative group shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                 {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-2xl">👤</div>}
@@ -167,7 +195,6 @@ export default function PerfilPage() {
               <p className="text-[8px] font-black uppercase mt-3">Perfil</p>
             </div>
 
-            {/* Cédula */}
             <div className="flex flex-col items-center">
               <div className="w-full h-24 border-4 border-black rounded-2xl overflow-hidden bg-gray-50 relative group shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
                 {cedulaUrl ? <img src={cedulaUrl} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[10px] font-black italic px-2">ID Cédula</div>}
@@ -179,7 +206,6 @@ export default function PerfilPage() {
               <p className="text-[8px] font-black uppercase mt-3">Cédula</p>
             </div>
 
-            {/* Logo Cooperativa (Solo Chofer) */}
             {tipoUsuario === 'chofer' && (
               <div className="flex flex-col items-center">
                 <div className="w-24 h-24 border-4 border-black rounded-[2rem] overflow-hidden bg-gray-50 relative group shadow-[4px_4px_0_0_rgba(255,215,0,0.3)] border-yellow-400">
@@ -223,7 +249,6 @@ export default function PerfilPage() {
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} className="w-full p-4 border-4 border-black rounded-3xl font-bold outline-none bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)] h-28" />
               </div>
 
-              {/* SERVICIOS */}
               <div className="relative border-4 border-black p-6 rounded-3xl bg-gray-50 space-y-4 shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
                 <label className="absolute -top-4 left-4 bg-yellow-400 border-2 border-black px-3 py-1 text-[10px] font-black uppercase italic">Servicios Incluidos</label>
                 <div className="flex flex-wrap gap-2">
@@ -241,7 +266,6 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              {/* FOTOS VEHÍCULO */}
               <div className="relative border-4 border-black p-6 rounded-[2.5rem] bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]">
                 <label className="absolute -top-4 left-4 bg-black text-yellow-400 border-2 border-black px-3 py-1 text-[10px] font-black uppercase italic">Fotos Vehículo (Máx 3)</label>
                 <div className="grid grid-cols-3 gap-4">
@@ -263,7 +287,7 @@ export default function PerfilPage() {
             </div>
           )}
 
-          {/* DATOS PERSONALES GENERALES */}
+          {/* DATOS PERSONALES Y PAGO MÓVIL (UNIFICADO) */}
           <div className="space-y-8">
             <div className="relative">
               <label className="absolute -top-3 left-4 bg-yellow-400 border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10">Nombre Completo</label>
@@ -272,13 +296,30 @@ export default function PerfilPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="relative">
-                <label className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10">Nº Cédula</label>
+                <label className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10 italic">Nº Cédula (Pago Móvil)</label>
                 <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} className="w-full p-4 border-4 border-black rounded-2xl font-bold bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]" required />
               </div>
               <div className="relative">
-                <label className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10">WhatsApp</label>
+                <label className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10 italic">Teléfono (WhatsApp / P. Móvil)</label>
                 <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} className="w-full p-4 border-4 border-black rounded-2xl font-bold bg-white shadow-[6px_6px_0_0_rgba(0,0,0,1)]" required />
               </div>
+            </div>
+
+            {/* Selector de Banco Integrado */}
+            <div className="relative">
+              <label className="absolute -top-3 left-4 bg-blue-500 text-white border-2 border-black px-2 py-0.5 text-[10px] font-black uppercase z-10 italic">Banco para recibir pagos</label>
+              <select 
+                value={pagoMovilBanco}
+                onChange={(e) => setPagoMovilBanco(e.target.value)}
+                className="w-full p-4 border-4 border-black rounded-2xl font-bold bg-blue-50 shadow-[6px_6px_0_0_rgba(0,0,0,1)] uppercase outline-none"
+              >
+                <option value="">Selecciona tu banco...</option>
+                {BANCOS_VENEZUELA.map((b) => (
+                  <option key={b.codigo} value={b.codigo}>
+                    ({b.codigo}) {b.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

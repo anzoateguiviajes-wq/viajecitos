@@ -11,6 +11,7 @@ export default function MisViajes() {
   const [solicitudesParaMisViajes, setSolicitudesParaMisViajes] = useState<any[]>([])
   const [perfil, setPerfil] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [referenciaInput, setReferenciaInput] = useState<{ [key: string]: string }>({})
   const supabase = createClient()
 
   const getData = async () => {
@@ -50,6 +51,7 @@ export default function MisViajes() {
           .select(`
             id,
             estado,
+            referencia_pago,
             viajes (*)
           `)
           .eq('pasajero_id', user.id)
@@ -62,6 +64,23 @@ export default function MisViajes() {
   useEffect(() => {
     getData()
   }, [])
+
+  // Nueva función para que el pasajero guarde su referencia
+  const actualizarReferencia = async (reservaId: string) => {
+    const ref = referenciaInput[reservaId]
+    if (!ref || ref.length < 4) return alert("Ingresa los últimos 4 dígitos")
+
+    const { error } = await supabase
+      .from('reservas')
+      .update({ referencia_pago: ref })
+      .eq('id', reservaId)
+
+    if (error) alert("Error al guardar")
+    else {
+      alert("Referencia guardada ✅")
+      getData()
+    }
+  }
 
   const gestionarSolicitud = async (reservaId: string, nuevoEstado: 'aprobado' | 'rechazado', viajeId: number, cuposActuales: number) => {
     const { error: errorReserva } = await supabase
@@ -145,11 +164,17 @@ export default function MisViajes() {
                             {solicitud.perfiles?.avatar_url ? <img src={solicitud.perfiles.avatar_url} className="w-full h-full object-cover" /> : <span className="flex items-center justify-center h-full text-xl">👤</span>}
                           </div>
                           <div className="space-y-2">
-                            {/* RUTA CORREGIDA AQUÍ: perfil-publico */}
-                            <Link href={`/perfil-publico/${solicitud.pasajero_id}`} className="font-black text-lg uppercase hover:text-blue-600 flex items-center gap-2 group leading-none">
-                              {solicitud.perfiles?.nombre_completo || 'Usuario'}
-                              <span className="text-[8px] bg-blue-600 text-white px-2 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">VER PERFIL</span>
-                            </Link>
+                            <div className="flex items-center gap-3">
+                              <Link href={`/perfil-publico/${solicitud.pasajero_id}`} className="font-black text-lg uppercase hover:text-blue-600 flex items-center gap-2 group leading-none">
+                                {solicitud.perfiles?.nombre_completo || 'Usuario'}
+                              </Link>
+                              {/* REFERENCIA VISIBLE PARA EL CHOFER */}
+                              {solicitud.referencia_pago && (
+                                <span className="bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded border-2 border-black">
+                                  REF: {solicitud.referencia_pago}
+                                </span>
+                              )}
+                            </div>
                             <a href={`https://wa.me/${solicitud.perfiles?.telefono?.replace(/\D/g, '')}`} target="_blank" className="inline-flex items-center gap-2 bg-[#25D366] border-2 border-black px-3 py-1.5 rounded-xl">
                               <span className="font-black text-[11px] text-white uppercase italic">WhatsApp</span>
                             </a>
@@ -174,21 +199,48 @@ export default function MisViajes() {
               ))}
 
               {perfil?.tipo_usuario === 'pasajero' && misReservas.map((reserva) => (
-                <div key={reserva.id} className="bg-white p-6 rounded-[2.5rem] border-4 border-black shadow-[10px_10px_0_0_rgba(0,0,0,1)] flex flex-col md:flex-row justify-between items-center gap-6">
-                  <div className="flex-1">
-                    <div className="text-2xl font-black italic uppercase leading-none">
-                      {reserva.viajes?.origen} <span className="text-yellow-400">→</span> {reserva.viajes?.destino}
+                <div key={reserva.id} className="bg-white p-6 rounded-[2.5rem] border-4 border-black shadow-[10px_10px_0_0_rgba(0,0,0,1)] space-y-4">
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex-1">
+                      <div className="text-2xl font-black italic uppercase leading-none">
+                        {reserva.viajes?.origen} <span className="text-yellow-400">→</span> {reserva.viajes?.destino}
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <span className={`px-4 py-1 rounded-xl text-[10px] font-black border-2 border-black uppercase ${reserva.estado === 'aprobado' ? 'bg-green-400' : reserva.estado === 'rechazado' ? 'bg-red-400 text-white' : 'bg-yellow-400'}`}>
+                          {reserva.estado.toUpperCase()}
+                        </span>
+                        <span className="bg-gray-100 border-2 border-black px-3 py-1 rounded-xl text-[10px] font-black italic">📅 {reserva.viajes?.fecha_salida}</span>
+                      </div>
                     </div>
-                    <div className="flex gap-3 mt-4">
-                      <span className={`px-4 py-1 rounded-xl text-[10px] font-black border-2 border-black uppercase ${reserva.estado === 'aprobado' ? 'bg-green-400' : reserva.estado === 'rechazado' ? 'bg-red-400 text-white' : 'bg-yellow-400'}`}>
-                        {reserva.estado.toUpperCase()}
-                      </span>
-                      <span className="bg-gray-100 border-2 border-black px-3 py-1 rounded-xl text-[10px] font-black italic">📅 {reserva.viajes?.fecha_salida}</span>
-                    </div>
+                    <button onClick={() => cancelarSolicitudPasajero(reserva.id)} className="bg-white text-black border-4 border-black px-8 py-4 rounded-2xl text-[11px] font-black hover:bg-red-500 hover:text-white transition-all uppercase italic">
+                      Cancelar
+                    </button>
                   </div>
-                  <button onClick={() => cancelarSolicitudPasajero(reserva.id)} className="bg-white text-black border-4 border-black px-8 py-4 rounded-2xl text-[11px] font-black hover:bg-red-500 hover:text-white transition-all uppercase italic">
-                    Cancelar
-                  </button>
+
+                  {/* INPUT PARA CARGAR REFERENCIA (SOLO SI ESTÁ APROBADO) */}
+                  {reserva.estado === 'aprobado' && (
+                    <div className="pt-4 border-t-2 border-gray-100 flex flex-col md:flex-row items-center gap-4">
+                      <div className="flex-1 w-full">
+                        <p className="text-[9px] font-black uppercase mb-1 ml-2">¿Ya pagaste? Carga los últimos 4 dígitos:</p>
+                        <div className="flex gap-2">
+                          <input 
+                            type="text" 
+                            maxLength={4}
+                            placeholder="Ej: 8823"
+                            value={referenciaInput[reserva.id] || reserva.referencia_pago || ''}
+                            onChange={(e) => setReferenciaInput({...referenciaInput, [reserva.id]: e.target.value})}
+                            className="flex-1 border-4 border-black p-2 rounded-xl font-black text-sm uppercase focus:ring-0 outline-none"
+                          />
+                          <button 
+                            onClick={() => actualizarReferencia(reserva.id)}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase border-2 border-black shadow-[3px_3px_0_0_rgba(0,0,0,1)] active:shadow-none"
+                          >
+                            Guardar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
